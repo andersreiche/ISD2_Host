@@ -26,6 +26,8 @@
 using namespace std;
 
 void setup_ADC(void);
+void pin_init(void);
+void heaterstate(string state);
 float get_temp(int value);
 int read_ADC(void);
 void to_syslog(string str);

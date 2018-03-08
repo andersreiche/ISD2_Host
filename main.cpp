@@ -57,7 +57,8 @@ int main() {
     }
 
     setup_ADC(); // echo the device tree overlay to the cape manager
-
+    pin_init();  // sets the neccesary pins
+    
     //////// Daemonizing ////////
     chdir("/"); // Change the current working directory to root.
     // Close stdin. stdout and stderr, daemonizing the process

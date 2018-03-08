@@ -7,6 +7,23 @@ void setup_ADC(void) {
     system("echo BB-ADC > /sys/devices/platform/bone_capemgr/slots");
 }
 
+void pin_init(void) {
+    system("config-pin p8.41 out");
+    system(" echo \"out\" > /sys/class/gpio/gpio20/direction");
+}
+
+void heaterstate(string state) {
+    if (state == "ON"){
+        system("echo 1 > /sys/class/gpio/gpio20/value");
+        to_syslog("Heater on");
+    } else if (state == "OFF") {
+        system("echo 0 > /sys/class/gpio/gpio20/value");
+        to_syslog("Heater off");
+    } else {
+        to_syslog("heaterstate was called with faulty parameter: " + state);
+    }
+}
+
 float get_temp(int value) {
     float milivolts = (value / 4096) * 1800;
     return (milivolts - 500) / 10;
@@ -59,10 +76,8 @@ int toint(std::string s) //The conversion function
 
 void heater(float temperature, int target) {
     if (temperature < target) {
-        to_syslog("Heater on");
-        // TODO: GPIO HIGH
+        heaterstate("ON");
     } else {
-        to_syslog("Heater off");
-        // TODO: GPIO LOW
+        heaterstate("OFF");
     }
 }
