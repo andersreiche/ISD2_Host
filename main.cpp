@@ -100,6 +100,8 @@ int main() {
         if (pthread_create(&msg, NULL, loop, (void *) 0) == 0) {
             to_syslog("Waiting for connecton...");
             tcp.receive();
+        } else {
+            to_syslog("Could not create thread: loop");
         }
     }
     to_syslog("main exited with return code 1");
