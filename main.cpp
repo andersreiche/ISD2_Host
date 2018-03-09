@@ -14,17 +14,18 @@ void * loop(void * m) {
     while (1) {
         string str = tcp.getMessage();
         if (str != "") {
-            std::size_t found = str.find("set ");
+
+            /* Input filtering will be done client
+             *  so this section is a bit rough*/
+
+            size_t found = str.find("set ");
+
             if (found != string::npos) {
                 int temp = toint(str.substr(4, 2));
-                if (temp >= 20 && temp <= 50) {
-                    tcp.Send("Setting new target temperature: " + tostr(setpoint) + " degC\n");
-                    setpoint = temp;
-                } else {
-                    tcp.Send(USAGE_MSG);
-                }
+                tcp.Send("Setting new target temperature: " + tostr(setpoint) + " degC\n");
+                setpoint = temp;
             } else {
-                tcp.Send(USAGE_MSG);
+                //tcp.Send(USAGE_MSG);
             }
             tcp.clean();
         }
@@ -35,7 +36,14 @@ void * loop(void * m) {
     tcp.detach();
 }
 
-int main() {
+int main(int argc, char * argv[]) {
+
+    if (argc > 1) {
+        if (string(argv[1]) == "--help" || string(argv[1]) == "-h") {
+            print_help();
+        }
+        exit(0);
+    }
 
     //////// Create an orphan ////////
     pid_t process_id = fork(); // Create child process
@@ -57,13 +65,13 @@ int main() {
     }
 
     setup_ADC(); // echo the device tree overlay to the cape manager
-    pin_init();  // sets the neccesary pins
-    
+    pin_init(); // sets the neccesary pins
+
     //////// Daemonizing ////////
     chdir("/"); // Change the current working directory to root.
     // Close stdin. stdout and stderr, daemonizing the process
     close(STDIN_FILENO);
-    //close(STDOUT_FILENO); //DEBUG//LAST THING TO DO BEFORE RELEASE
+    close(STDOUT_FILENO);
     close(STDERR_FILENO);
     to_syslog("Started daemonized process");
 

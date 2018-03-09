@@ -3,21 +3,43 @@
 
 using namespace std;
 
+void print_help(void) {
+    cout << endl << endl << endl << endl << endl << endl << endl << endl << endl;
+    cout << "######################################################################" << endl;
+    cout << "                          USAGE INFORMATION" << endl;
+    cout << "######################################################################" << endl;
+    cout << "Launch the process:        sudo ./isd2_host " << endl;
+    cout << "listen to process output:  tail -f /var/log/syslog | grep Daemon" << endl;
+    cout << "connect directly:          telnet <host_ip = localhost> <port = 1955>" << endl;
+    cout << endl;
+    cout << "This process uses client side input filtering." << endl;
+    cout << "Bypassing with telnet is at your own risk!" << endl;
+    cout << endl;
+    cout << "######################################################################" << endl;
+    cout << "######################################################################" << endl;
+    cout << endl;
+}
+
 void setup_ADC(void) {
     system("echo BB-ADC > /sys/devices/platform/bone_capemgr/slots");
 }
 
+/* TODO: if expansion is needed, consider making this function general*/
 void pin_init(void) {
-    system("config-pin p8.41 out");
-    system(" echo \"out\" > /sys/class/gpio/gpio20/direction");
+    /* configure p9.12 as digital output and set pin low*/
+    system("echo 60 > /sys/class/gpio/export");
+    system("echo out > /sys/class/gpio/gpio60/direction");
+    system("echo 0 > /sys/class/gpio/gpio60/value");
+    
+
 }
 
 void heaterstate(string state) {
     if (state == "ON"){
-        system("echo 1 > /sys/class/gpio/gpio20/value");
+        system("echo 1 > /sys/class/gpio/gpio60/value");
         to_syslog("Heater on");
     } else if (state == "OFF") {
-        system("echo 0 > /sys/class/gpio/gpio20/value");
+        system("echo 0 > /sys/class/gpio/gpio60/value");
         to_syslog("Heater off");
     } else {
         to_syslog("heaterstate was called with faulty parameter: " + state);
@@ -25,8 +47,8 @@ void heaterstate(string state) {
 }
 
 float get_temp(int value) {
-    float milivolts = (value / 4096) * 1800;
-    return (milivolts - 500) / 10;
+    float temp = value * (1.80f / 4096.0f);
+    return (100 * temp);
 }
 
 int read_ADC(void) {

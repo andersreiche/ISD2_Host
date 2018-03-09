@@ -21,7 +21,6 @@
 #include <fstream>
 
 #define AIN0 "/sys/bus/iio/devices/iio:device0/in_voltage0_raw"
-#define USAGE_MSG "Usage: set <temperature> (takes temperatures between 20 and 50) \n"
 
 using namespace std;
 
@@ -35,6 +34,7 @@ void sig_handler(int signo);
 void timer_handler (int signo);
 int toint(std::string s);
 void heater(float temperature, int target);
+void print_help(void);
 
 template <typename T> string tostr(const T& t) {
     ostringstream os;
