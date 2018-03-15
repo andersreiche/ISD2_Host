@@ -1,3 +1,8 @@
+/* 
+ * File:   controller.h
+ * Author: Anders
+ */
+
 #include <iostream>
 #include "TCPServer.h"
 #include "daemon.h"
@@ -6,32 +11,19 @@
 TCPServer tcp;
 using namespace std;
 
-int setpoint = 25;
-float temperature = 25;
-
 void * loop(void * m) {
     pthread_detach(pthread_self());
     while (1) {
         string str = tcp.getMessage();
         if (str != "") {
-
-            /* Input filtering will be done client
-             *  so this section is a bit rough*/
-
-            size_t found = str.find("set ");
-
-            if (found != string::npos) {
-                int temp = toint(str.substr(4, 2));
-                tcp.Send("Setting new target temperature: " + tostr(setpoint) + " degC\n");
-                setpoint = temp;
-            } else {
-                //tcp.Send(USAGE_MSG);
+            if (str == "GETTEMP") {
+                tcp.Send(tostr(get_temp(read_ADC())));
+            } else if (str.length() == 1) {
+               heater(toint(str));
             }
             tcp.clean();
         }
-        temperature = get_temp(read_ADC());
-        heater(temperature, setpoint);
-        usleep(500000);
+        sleep(1);
     }
     tcp.detach();
 }

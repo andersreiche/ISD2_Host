@@ -1,3 +1,8 @@
+/* 
+ * File:   controller.h
+ * Author: Anders
+ */
+
 
 #ifndef DAEMON_H
 #define DAEMON_H
@@ -33,7 +38,7 @@ void to_syslog(string str);
 void sig_handler(int signo);
 void timer_handler (int signo);
 int toint(std::string s);
-void heater(float temperature, int target);
+void heater(int state);
 void print_help(void);
 
 template <typename T> string tostr(const T& t) {

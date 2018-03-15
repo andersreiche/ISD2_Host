@@ -1,3 +1,7 @@
+/* 
+ * File:   controller.h
+ * Author: Anders
+ */
 
 #include "daemon.h"
 
@@ -96,8 +100,8 @@ int toint(std::string s) //The conversion function
     return atoi(s.c_str());
 }
 
-void heater(float temperature, int target) {
-    if (temperature < target) {
+void heater(int state) {
+    if (state) {
         heaterstate("ON");
     } else {
         heaterstate("OFF");
