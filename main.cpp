@@ -12,16 +12,24 @@ TCPServer tcp;
 using namespace std;
 
 void * loop(void * m) {
-    pthread_detach(pthread_self());
+    pthread_detach(pthread_self()); // Thread should not be joined
     while (1) {
+        /* reads the "message" string that is continuously updated with the
+         * recieve task */
         string str = tcp.getMessage();
+        
+        /* str will always fall into one of these categories, since it is 
+         * the client process that handles strings and not the user directly */
         if (str != "") {
             if (str == "GETTEMP") {
+                
+                /* Reads the ADC pin, does the temperature conversion and sends */
                 tcp.Send(tostr(get_temp(read_ADC())));
-            } else if (str.length() == 1) {
+            } else if (str.length() == 1) { // Message is 0 or 1
+                /* Performs system calls to ADC pin based on message */
                heater(toint(str));
             }
-            tcp.clean();
+            tcp.clean(); // zeroes the "Message" variable and the receive buffer
         }
         sleep(1);
     }
@@ -30,6 +38,7 @@ void * loop(void * m) {
 
 int main(int argc, char * argv[]) {
 
+    /* test if the "help" flag is set by the user */
     if (argc > 1) {
         if (string(argv[1]) == "--help" || string(argv[1]) == "-h") {
             print_help();
@@ -76,7 +85,7 @@ int main(int argc, char * argv[]) {
     //////// TIMER SECTION ////////
     struct itimerval timer;
 
-    // install signal_handler as the signal handler for SIGVTALRM.
+    // install signal_handler as the signal handler for SIGALRM.
     if (signal(SIGALRM, timer_handler) == SIG_ERR) {
         to_syslog("Could not install signal handler, closing process");
         exit(EXIT_FAILURE);
@@ -96,15 +105,16 @@ int main(int argc, char * argv[]) {
     }
 
     pthread_t msg;
-    tcp.setup(1955);
+    tcp.setup(1955); // Socket, Bind, Listen
+    
     while (1) {
         if (pthread_create(&msg, NULL, loop, (void *) 0) == 0) {
-            to_syslog("Waiting for connecton...");
-            tcp.receive();
+            tcp.receive(); // Starts the recieve tast that updates "Message"
         } else {
             to_syslog("Could not create thread: loop");
         }
     }
+    /* We should never arrive here */
     to_syslog("main exited with return code 1");
     return 1;
 }
